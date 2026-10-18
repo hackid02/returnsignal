@@ -40,13 +40,14 @@ Amounts are converted to integer cents for comparison. Outstanding is `max(0, ex
 ### Identify and follow up
 - A returned case with a past expected refund date and positive balance is marked Refund overdue.
 - A case not yet returned with a return-by date up to and including three days away is included in Needs action. Past return windows remain visible there as well.
-- Search matches item, seller, order/context note, and tracking/drop-off note without changing the selected status filter.
+- Search matches item, seller, order/context note, tracking/drop-off note, and payment-history text without changing the selected status filter.
 - A follow-up for the selected case states expected amount, amount received, and outstanding amount. It must not claim a seller policy or legal entitlement was verified.
-- Follow-up is copied for the user to review; the app does not send it.
+- After copying, the exact follow-up text is also shown in a read-only preview so the user can verify the amounts and wording; the app does not send it.
 
 ### Back up and restore
-- Export creates a versioned JSON backup containing all current cases and payment ledger entries.
+- Export downloads a versioned JSON backup named `returnsignal-backup-v1-YYYY-MM-DD.json`, containing all current cases and payment ledger entries.
 - Restore accepts only supported backup format/version and validates required fields, dates, amounts, payment ledgers, status, and currency before replacing data.
+- A reusable, valid fictional restore fixture is available at `tests/fixtures/testsprite-refund-case.json`; use it for the restore scenario rather than asking the agent to invent or select a local file.
 - Current cases are replaced only after explicit confirmation.
 - Invalid or cancelled imports leave current data unchanged.
 

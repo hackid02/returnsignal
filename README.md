@@ -8,7 +8,7 @@
 - **Public repository:** https://github.com/hackid02/returnsignal
 - **TestSprite portal:** Project created; first generated run reported issues now being addressed. GitHub App PR check is not connected yet.
 
-The app is a static page with no server component. GitHub Pages publishes the `main` branch from the repository root. Local tests run with `npm test`; they do not substitute for the S4-required TestSprite portal suite and PR check.
+The app is a static page with no server component. GitHub Pages publishes the production site from `main` at the live URL above. Vercel is connected for pull-request preview deployments; use each PR's preview URL for TestSprite checks so judges can verify the proposed code before merge. Local tests run with `npm test`; they do not substitute for the S4-required TestSprite portal suite and PR check.
 
 ## Core workflow
 

@@ -1,0 +1,30 @@
+{
+  "format": "returnsignal-backup",
+  "version": 1,
+  "exportedAt": "2026-10-18T00:00:00.000Z",
+  "cases": [
+    {
+      "id": "testsprite-refund-case-001",
+      "item": "Sample travel mug",
+      "store": "Example Outfitters",
+      "purchased": "2025-02-15",
+      "deadline": "2025-03-01",
+      "expected": 120,
+      "currency": "USD",
+      "received": 100,
+      "refundDue": "2025-03-10",
+      "note": "Order EX-1042",
+      "status": "returned",
+      "returnedOn": "2025-03-05",
+      "tracking": "Drop-off receipt EX-77",
+      "payments": [
+        {
+          "amount": 100,
+          "date": "2025-03-12",
+          "note": "First partial refund"
+        }
+      ],
+      "created": 1739577600000
+    }
+  ]
+}

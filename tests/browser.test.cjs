@@ -147,6 +147,73 @@ test('case can be reconciled through the real Chromium interface', async t => {
   await page.locator('.case[aria-label*="Canvas backpack"][aria-label*="Resolved"]').waitFor();
 });
 
+test('case search includes payment-history text without clearing the active filter', async t => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  t.after(() => page.close());
+  await page.goto(origin);
+  const partialFilter = page.locator('[data-filter="partial"]');
+  await partialFilter.click();
+  assert.equal(await partialFilter.getAttribute('aria-pressed'), 'true');
+  await page.locator('#case-search').fill('Partial refund received');
+  const camera = page.getByRole('button', { name: /Open Compact camera from Frame & Field/ });
+  await camera.waitFor();
+  assert.equal(await page.locator('#case-list button.case').count(), 1);
+  assert.equal(await partialFilter.getAttribute('aria-pressed'), 'true', 'search preserves the selected outstanding-refunds filter');
+  await page.locator('#case-search').fill('');
+  assert.equal(await partialFilter.getAttribute('aria-pressed'), 'true', 'clearing search does not reset the filter');
+  assert.equal(await page.getByRole('button', { name: /Open Desk lamp/ }).count(), 0, 'resolved cases remain excluded by the active filter');
+});
+
+test('copied factual follow-up is visible for review with reconciled amounts', async t => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  t.after(() => page.close());
+  await page.goto(origin);
+  await page.getByRole('button', { name: /Open Compact camera from Frame & Field/ }).click();
+  await page.getByRole('button', { name: 'Copy factual follow-up' }).click();
+  const preview = page.locator('#followup-preview');
+  await preview.waitFor({ state: 'visible' });
+  const message = await page.locator('#followup-text').innerText();
+  assert.match(message, /Hello Frame & Field/);
+  assert.match(message, /expected \$279\.00/);
+  assert.match(message, /received \$250\.00/);
+  assert.match(message, /remaining amount is \$29\.00/);
+});
+
+test('export downloads a versioned JSON backup with the payment ledger', async t => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+  t.after(() => page.close());
+  await page.goto(origin);
+  await page.locator('#data-menu summary').click();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.locator('#export-cases').click(),
+  ]);
+  assert.match(download.suggestedFilename(), /^returnsignal-backup-v1-\d{4}-\d{2}-\d{2}\.json$/);
+  const filePath = await download.path();
+  const payload = JSON.parse(await fs.promises.readFile(filePath, 'utf8'));
+  assert.equal(payload.format, 'returnsignal-backup');
+  assert.equal(payload.version, 1);
+  assert.equal(payload.cases.length, 3);
+  const camera = payload.cases.find(item => item.item === 'Compact camera');
+  assert.equal(camera.received, 250);
+  assert.deepEqual(camera.payments.map(payment => [payment.amount, payment.note]), [[250, 'Partial refund received']]);
+});
+
+test('restore accepts the known-good refund fixture and replaces the casebook after confirmation', async t => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  t.after(() => page.close());
+  await page.goto(origin);
+  page.once('dialog', dialog => dialog.accept());
+  await page.locator('#backup-file').setInputFiles(path.join(__dirname, 'fixtures', 'testsprite-refund-case.json'));
+  await page.waitForFunction(() => document.querySelectorAll('#case-list button.case').length === 1);
+  const restored = page.getByRole('button', { name: /Open Sample travel mug from Example Outfitters/ });
+  await restored.waitFor();
+  await restored.click();
+  assert.match(await page.locator('#detail-content').innerText(), /Still owed\s+\$20\.00/);
+  assert.match(await page.locator('#detail-content').innerText(), /First partial refund/);
+  assert.match(await page.locator('#detail-content').innerText(), /Refund overdue/);
+});
+
 test('dialog keeps keyboard focus inside and returns focus to its trigger', async t => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   t.after(() => page.close());
